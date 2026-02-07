@@ -1,0 +1,48 @@
+* {
+	button,
+	a {
+		cursor: pointer;
+	}
+}
+
+.noise {
+	background-image: url(/images/noise.png);
+	filter: invert(1);
+}
+
+.hero-bg {
+	background-image: url(/images/bg-hero.jpeg);
+}
+
+@keyframes scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-13.333%);
+	}
+}
+
+.animate-scroll {
+	animation: scroll 28s linear infinite;
+}
+
+.animate-scroll:hover {
+	animation-play-state: paused;
+}
+
+/* Responsive speed */
+@media (max-width: 768px) {
+	@keyframes scroll {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-300%);
+		}
+	}
+
+	.animate-scroll {
+		animation: scroll 20s linear infinite;
+	}
+}
