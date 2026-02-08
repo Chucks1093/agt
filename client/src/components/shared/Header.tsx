@@ -7,9 +7,9 @@ function Header() {
 			<div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 				<Link
 					to="/"
-					className="flex items-center gap-3 font-semibold  text-white bg-gray-900 px-4 py-0.5 rounded-lg"
+					className="flex items-center gap-3 font-semibold  text-white  border-2 px-4 py-0.5 rounded-lg"
 				>
-					<span className="text-2xl block tracking-wider  font-chewy font-light">
+					<span className="text-2xl block  text-gray-500  font-montserrat  font-bold">
 						AGT
 					</span>
 				</Link>

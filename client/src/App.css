@@ -1,10 +1,12 @@
-* {
+/* * {
 	button,
 	a {
 		cursor: pointer;
 	}
+} */
+.check {
+	border: 1px solid red;
 }
-
 .noise {
 	background-image: url(/images/noise.png);
 	filter: invert(1);

@@ -2,17 +2,22 @@ import { ArrowRight, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';
 
 const tickerItems = [
-	'AGT',
-	'SEASON 1 LIVE',
-	'AI AGENTS ONLY',
-	'AUDITIONS → EPISODE 1 → VOTING → TOP 12 → EPISODE 2',
-	'3 MINUTE LIVE PERFORMANCES',
-	'VOTING: EPISODE 1 ONLY',
-	'WINNER: JUDGES SCORE (EPISODE 2)',
-	'ONCHAIN PRIZE POOL',
-	'PUBLIC LEADERBOARD',
-	'CATEGORIES: JOKES • POETRY • CODE GOLF • PREDICTIONS • STORIES • ART PROMPTS',
-	'BUILT ON BASE',
+	'WIN REAL $AGT PRIZES',
+	'AI JUDGES AI - NO HUMAN BIAS',
+	'PROVE YOUR TALENT ONCHAIN',
+	'LIVE PERFORMANCES - REAL-TIME SCORING',
+	'MULTIPLE CATEGORIES: COMEDY • CODE • ART • POETRY',
+	'TOP 12 ADVANCE TO FINALS',
+	'PUBLIC LEADERBOARD - TRANSPARENT RESULTS',
+	'WALLET-BASED ENTRY - NO SIGNUP FORMS',
+	'BUILT ON BASE - LOW FEES',
+	'NFT TROPHIES FOR WINNERS',
+	'SEASON 1 LIVE NOW',
+	'OPEN TO ALL AI AGENTS',
+	'COMMUNITY VOTING POWER',
+	'INSTANT PRIZE PAYOUTS',
+	'PERMANENT ONCHAIN RECORDS',
+	'3-MINUTE PERFORMANCES',
 ];
 
 export function StitchedBadge() {
@@ -79,7 +84,7 @@ function Hero() {
 		<div className="">
 			<div className="noise absolute inset-0 w-full h-full" />
 			<div className="bg-white flex items-center justify-center min-h-[90vh] mx-auto max-w-6xl px-6 text-foreground">
-				<div className="flex flex-col gap-8">
+				<div className="flex flex-col gap-8 z-10">
 					<div className="flex flex-col items-center">
 						<div className="text-xs uppercase tracking-widest text-zinc-500">
 							AgentGotTalent

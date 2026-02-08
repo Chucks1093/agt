@@ -1,136 +1,97 @@
-import { Sparkles } from 'lucide-react';
+import { Bot, MoveRight } from 'lucide-react';
+import type { SeasonStatus } from '@shared/season.types';
+import { SeasonStatusBadge } from './StatusBadge';
 import { Link } from 'react-router';
 
-interface Season {
+export interface Season {
 	id: string;
-	name: string;
-	description: string | null;
-	image_url: string | null;
-	status: string;
-	auditions_start: string | null;
-	auditions_end: string | null;
-	episode1_start: string | null;
-	episode1_end: string | null;
-	episode2_start: string | null;
-	episode2_end: string | null;
-	created_at: string;
-	activated_at: string | null;
-	created_by_wallet: string | null;
-	judges_count: number;
-	auditions_count: number;
-	prize_pool_label: string | null;
+
+	title: string;
+	description: string;
+	status: SeasonStatus;
+	cover_image_url: string;
+
+	// Prize info
+	prize_pool_agt: number; // Total prize in $AGT
+	prize_pool_usdc?: number; // Optional USDC prize
+
+	episode_2_participants: number; // Top N advance to finals (default: 12)
+
+	// Counts
+	total_auditions: number;
+
+	created_at: Date;
+	updated_at: Date;
 }
 
-interface SeasonCardProps {
-	season: Season;
+interface SeasonCardProps extends Season {
+	key?: string;
 }
 
-export function SeasonCard({ season }: SeasonCardProps) {
-	const normalizeStatus = (status: string) => {
-		switch (status) {
-			case 'auditions':
-				return 'audition';
-			case 'episode1':
-				return 'episode 1';
-			case 'voting':
-				return 'voting';
-			case 'episode2':
-				return 'episode 2';
-			case 'closed':
-				return 'closed';
-			default:
-				return 'draft';
-		}
-	};
-
-	const getStatusColor = (status: string) => {
-		switch (normalizeStatus(status)) {
-			case 'draft':
-				return 'bg-gray-500';
-			case 'audition':
-				return 'bg-blue-500';
-			case 'episode 1':
-				return 'bg-indigo-500';
-			case 'voting':
-				return 'bg-purple-500';
-			case 'episode 2':
-				return 'bg-yellow-500';
-			case 'closed':
-				return 'bg-green-500';
-			default:
-				return 'bg-gray-500';
-		}
-	};
-
+const SeasonCard = (props: SeasonCardProps) => {
+	const isNotActive =
+		props.status == 'UPCOMING' || props.status == 'COMPLETED';
 	return (
-		<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-4 shadow-sm transition-colors duration-200 hover:bg-accent">
-			<div className="relative overflow-hidden rounded-xl border border-border">
-				{season.image_url ? (
-					<div className="relative w-full h-48">
-						<img
-							src={season.image_url}
-							alt="Dark, premium season card banner with a subtle tech pattern, clean typography, and spotlighted title area"
-							className="object-cover h-full w-full"
-						/>
-					</div>
-				) : (
-					<div className="w-full h-48 bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 text-white flex items-center justify-center">
-						<Sparkles className="w-8 h-8 opacity-80" />
-					</div>
-				)}
-				<div className="absolute top-3 right-3">
-					<span
-						className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(season.status)} text-white shadow`}
-					>
-						{normalizeStatus(season.status)}
-					</span>
-				</div>
+		<div
+			rel="noopener noreferrer"
+			className={`rounded-3xl border border-gray-200 p-2 overflow-hidden shadow-sm hover:shadow-md transition-all bg-white relative ${isNotActive && 'opacity-50'}`}
+		>
+			{/* Image Container */}
+			<div className="md:h-[16rem] h-[13rem] relative overflow-hidden rounded-3xl">
+				{/* Cover Image */}
+				<img
+					src={props.cover_image_url}
+					alt={props.title}
+					className="w-full h-full object-cover object-top brightness-90"
+					onError={e => {
+						e.currentTarget.src =
+							'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-family="Arial" font-size="18"%3EBlog Image%3C/text%3E%3C/svg%3E';
+					}}
+				/>
+				<SeasonStatusBadge
+					status={props.status}
+					className="absolute top-3 right-3"
+				/>
 			</div>
 
-			<div className="mt-3">
-				<h3 className="text-lg font-semibold truncate">{season.name}</h3>
-				{season.description && (
-					<p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-						{season.description}
-					</p>
-				)}
+			{/* Content */}
+			<div className="p-4">
+				{/* Title */}
+				<h3 className="text-xl font-semibold font-manrope text-gray-600 mb-3 overflow-hidden line-clamp-2">
+					{props.title}
+				</h3>
 
-				<div className="mt-3 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
-					<div>
-						<div className="text-[11px] uppercase tracking-wide text-muted-foreground/80">
-							Prize pool
-						</div>
-						<div className="text-sm font-medium text-foreground">
-							{season.prize_pool_label ?? 'TBD'}
-						</div>
+				{/* Description */}
+				<p className="text-gray-400 line-clamp-2 text-sm">
+					{props.description}
+				</p>
+				<div className="border-t-2 mt-4 py-2 border-gray-200 border-dashed flex items-center justify-between">
+					<div className="flex items-center  py-2 gap-1 ">
+						<img
+							src="/icons/trophy.svg"
+							className="size-5 text-gray-700"
+							alt=""
+						/>
+						<p className="font-manrope font-bold text-gray-500">
+							{props.prize_pool_agt} $AGT
+						</p>
 					</div>
-					<div>
-						<div className="text-[11px] uppercase tracking-wide text-muted-foreground/80">
-							Judges
-						</div>
-						<div className="text-sm font-medium text-foreground">
-							{season.judges_count}
-						</div>
-					</div>
-					<div>
-						<div className="text-[11px] uppercase tracking-wide text-muted-foreground/80">
-							Auditions
-						</div>
-						<div className="text-sm font-medium text-foreground">
-							{season.auditions_count} agents
-						</div>
+					<div className="flex items-center  py-2 gap-1">
+						<Bot className="size-6 text-gray-500" />
+						<p className="font-manrope font-bold text-gray-500">
+							{props.total_auditions} Agents
+						</p>
 					</div>
 				</div>
-
-				<div className="mt-4">
-					<Link
-						to={`/admin/seasons/${season.id}`}
-						className="inline-flex w-full items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
-					>
-						See more details
-					</Link>
-				</div>
+				<Link
+					to={`/seasons/${props.id}`}
+					className="bg-gray-800 hover:bg-gray-700 active:bg-gray-700 disabled:bg-gray-700 mt-3 disabled:cursor-not-allowed text-white font-semibold font-jakarta px-14 py-2.5 rounded-lg transition-colors duration-200 outline-none ring-2 ring-gray-500 ring-offset-2 cursor-pointer w-full flex items-center gap-3 justify-center"
+				>
+					View Details <MoveRight />
+				</Link>
 			</div>
 		</div>
 	);
-}
+};
+
+export default SeasonCard;
