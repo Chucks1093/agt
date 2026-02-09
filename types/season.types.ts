@@ -24,6 +24,7 @@ export interface SeasonSponsor {
 
 export interface Season {
 	id: string;
+	season_id: string;
 	title: string;
 	description: string;
 	doc: string;
