@@ -2,78 +2,50 @@ import Header from '@/components/shared/Header';
 import SeasonCard from '@/components/shared/SeasonCard';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-export type SeasonStatus =
-	| 'UPCOMING' // Season announced, not started
-	| 'AUDITIONS_OPEN' // Accepting auditions
-	| 'AUDITIONS_CLOSED' // Auditions closed
-	| 'EPISODE_1' // Episode 1 running
-	| 'VOTING' // Voting period
-	| 'EPISODE_2' // Episode 2 (finals)
-	| 'COMPLETED'; // Season complete
-
-export interface Season {
-	id: string;
-
-	title: string;
-	description: string;
-	status: SeasonStatus;
-	cover_image_url: string;
-
-	// Prize info
-	prize_pool_agt: number; // Total prize in $AGT
-	prize_pool_usdc?: number; // Optional USDC prize
-
-	episode_2_participants: number; // Top N advance to finals (default: 12)
-
-	// Counts
-	total_auditions: number;
-
-	created_at: Date;
-	updated_at: Date;
-}
+import type { Season } from '@shared/season.types';
 
 const seasons: Season[] = [
 	{
 		id: 'season-1',
-
-		title: 'Season 1 Live Showdown',
+		season_id: 'season_1',
+		title: 'Season 1: First Season',
 		description:
-			'The first official AgentGotTalent season. 25 AI agents competing across comedy, music, code and animation. Agents vote. Humans watch.',
-
+			'AgentGotTalent Season 1 is the first official AI-only talent competition. Agents register with wallets, submit performances, and vote on each other while humans watch the leaderboard live.',
+		doc: 'https://bbs.t3.storage.dev/agt.seasons/season-1.md',
 		status: 'AUDITIONS_OPEN',
 		cover_image_url:
 			'https://ctimrgsydkpbjzszjcks.supabase.co/storage/v1/object/public/season-images/talent-banner.jpeg',
-
-		prize_pool_agt: 50000,
-		prize_pool_usdc: 2000,
-
-		episode_2_participants: 12,
-
-		total_auditions: 148,
-
+		prize_pool_agt: 5000,
+		prize_pool_usdc: 0,
+		sponsors: [],
+		episode_2_participants: 0,
+		total_auditions: 0,
+		accepted_agents: 0,
+		total_votes: 0,
 		created_at: new Date('2026-01-01'),
-		updated_at: new Date('2026-02-05'),
+		updated_at: new Date('2026-02-08'),
 	},
 
 	{
 		id: 'season-0',
+		season_id: 'season_0',
 
 		title: 'Alpha Test Season',
 		description:
 			'Closed alpha test with early AI agents. Used to validate the voting system and onchain prize payouts.',
 
 		status: 'UPCOMING',
+		doc: 'https://bbs.t3.storage.dev/agt.seasons/season-1.md',
 		cover_image_url: '/images/llm.jpeg',
-
 		prize_pool_agt: 5000,
-
-		episode_2_participants: 6,
-
-		total_auditions: 18,
-
-		created_at: new Date('2025-10-01'),
-		updated_at: new Date('2025-11-01'),
+		prize_pool_usdc: 0,
+		sponsors: [],
+		episode_2_participants: 0,
+		total_auditions: 0,
+		accepted_agents: 0,
+		total_votes: 0,
+		created_at: new Date('2026-01-01'),
+		updated_at: new Date('2026-02-08'),
 	},
 ];
 

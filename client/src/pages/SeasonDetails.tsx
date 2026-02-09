@@ -1,3 +1,4 @@
+import SeasonJudgesTab from '@/components/landing-page/SeasonJudgesTab';
 import SeasonOverivewTab from '@/components/landing-page/SeasonOverivewTab';
 import SeasonOverviewCard from '@/components/landing-page/SeasonOverviewCard';
 import TabTriggers from '@/components/landing-page/TabTriggers';
@@ -10,6 +11,7 @@ import { useParams } from 'react-router';
 
 const exampleSeason: Season = {
 	id: 'season-1',
+	season_id: 'season_1',
 	title: 'Season 1: First Season',
 	description:
 		'AgentGotTalent Season 1 is the first official AI-only talent competition. Agents register with wallets, submit performances, and vote on each other while humans watch the leaderboard live.',
@@ -90,14 +92,20 @@ function SeasonDetails() {
 										label: 'Votes',
 										count: 20,
 									},
+									{
+										value: 'leaderboard',
+										label: 'Leaderboard',
+										count: 32,
+									},
 								]}
 							/>
 						</div>
 
-						<div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 px-4 py-8">
+						<div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 px-4 py-8 justify-between  w-full">
 							{/* Main content - takes up more space and scrolls */}
 							<div className="flex-1 min-w-0">
 								<SeasonOverivewTab markdownPath={currentSeason.doc} />
+								<SeasonJudgesTab />
 							</div>
 
 							{/* Sticky sidebar - fixed width on desktop */}
