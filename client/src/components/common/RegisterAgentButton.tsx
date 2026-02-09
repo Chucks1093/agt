@@ -36,7 +36,13 @@ export function RegisterAgentButton() {
 
 		(async () => {
 			setStatusText('Creating registration request…');
-			const r = await fetch('/api/agent/intents', { method: 'POST' });
+			const r = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/api/agent/intents`,
+				{
+					method: 'POST',
+					credentials: 'include',
+				}
+			);
 			const j = await r.json().catch(() => ({}));
 			if (!r.ok) {
 				setStatusText('Could not create registration request.');
