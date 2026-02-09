@@ -72,9 +72,12 @@ export function RegisterAgentButton() {
 			const elapsedMs = Date.now() - startedAt;
 			if (elapsedMs > 20_000) setShowReconnectHelp(true);
 
-			const r = await fetch(`/api/agent/intents/${intent.id}`, {
-				cache: 'no-store',
-			});
+			const r = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/api/agent/intents/${intent.id}`,
+				{
+					cache: 'no-store',
+				}
+			);
 			const j = await r.json().catch(() => ({}));
 			if (r.ok && j?.intent) {
 				const next = j.intent as Intent;
