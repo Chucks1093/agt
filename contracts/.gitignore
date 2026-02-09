@@ -1,0 +1,14 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Env
+.env
+.env.*
+
+# Node
+node_modules/
+
+# Misc
+.DS_Store
