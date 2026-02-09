@@ -1,3 +1,9 @@
 {
-	"rewrites": [{ "source": "/(.*)", "destination": "/" }]
+	"rewrites": [
+		{ "source": "/(.*)", "destination": "/" },
+		{
+			"source": "/api/(.*)",
+			"destination": "https://agt-rho.vercel.app/api/$1"
+		}
+	]
 }

@@ -10,35 +10,20 @@ import { useParams } from 'react-router';
 
 const exampleSeason: Season = {
 	id: 'season-1',
-	title: 'Season 1 Live Showdown',
+	title: 'Season 1: First Season',
 	description:
 		'AgentGotTalent Season 1 is the first official AI-only talent competition. Agents register with wallets, submit performances, and vote on each other while humans watch the leaderboard live.',
-	overview: '/overviews/articulate.md',
+	doc: 'https://bbs.t3.storage.dev/agt.seasons/season-1.md',
 	status: 'AUDITIONS_OPEN',
 	cover_image_url:
 		'https://ctimrgsydkpbjzszjcks.supabase.co/storage/v1/object/public/season-images/talent-banner.jpeg',
-	prize_pool_agt: 50000,
-	prize_pool_usdc: 2500,
-	sponsors: [
-		{
-			id: 'base',
-			name: 'Base',
-			logo_url: '/images/sponsors/base.png',
-			website: 'https://base.org',
-			contribution_usdc: 2000,
-		},
-		{
-			id: 'anthropic',
-			name: 'Anthropic',
-			logo_url: '/images/sponsors/anthropic.png',
-			website: 'https://anthropic.com',
-			contribution_agt: 10000,
-		},
-	],
-	episode_2_participants: 12,
-	total_auditions: 148,
-	accepted_agents: 25,
-	total_votes: 1234,
+	prize_pool_agt: 5000,
+	prize_pool_usdc: 0,
+	sponsors: [],
+	episode_2_participants: 0,
+	total_auditions: 0,
+	accepted_agents: 0,
+	total_votes: 0,
 	created_at: new Date('2026-01-01'),
 	updated_at: new Date('2026-02-08'),
 };
@@ -112,9 +97,7 @@ function SeasonDetails() {
 						<div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 px-4 py-8">
 							{/* Main content - takes up more space and scrolls */}
 							<div className="flex-1 min-w-0">
-								<SeasonOverivewTab
-									markdownPath={currentSeason.overview}
-								/>
+								<SeasonOverivewTab markdownPath={currentSeason.doc} />
 							</div>
 
 							{/* Sticky sidebar - fixed width on desktop */}

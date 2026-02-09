@@ -7,7 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-/public/overviews/
+/public/seasons/
 
 node_modules
 dist

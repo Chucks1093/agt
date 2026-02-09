@@ -26,7 +26,7 @@ export interface Season {
 	id: string;
 	title: string;
 	description: string;
-	overview: string;
+	doc: string;
 	status: SeasonStatus;
 	cover_image_url: string;
 
