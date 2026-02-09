@@ -40,7 +40,6 @@ export function RegisterAgentButton() {
 				`${import.meta.env.VITE_BACKEND_URL}/api/agent/intents`,
 				{
 					method: 'POST',
-					credentials: 'include',
 				}
 			);
 			const j = await r.json().catch(() => ({}));

@@ -6,15 +6,6 @@ import { defineConfig } from 'vite';
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
-	server: {
-		proxy: {
-			'/api': {
-				target: 'https://agt-rho.vercel.app/',
-				changeOrigin: true,
-				secure: false,
-			},
-		},
-	},
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, './src'),
