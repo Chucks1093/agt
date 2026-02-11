@@ -43,6 +43,7 @@ export interface Season {
 
 	// Counts
 	total_auditions: number;
+	total_judges: number;
 	accepted_agents: number;
 	total_votes: number;
 

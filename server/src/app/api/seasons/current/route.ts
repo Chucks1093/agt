@@ -13,7 +13,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("seasons")
     .select(
-      "id, season_id, title, description, doc, status, cover_image_url, prize_pool_agt, prize_pool_usdc, sponsors, episode_2_participants, total_auditions, accepted_agents, total_votes, created_at, updated_at"
+      "id, season_id, title, description, doc, status, cover_image_url, prize_pool_agt, prize_pool_usdc, sponsors, episode_2_participants, total_auditions, total_judges, accepted_agents, total_votes, created_at, updated_at"
     )
     .order("created_at", { ascending: false })
     .limit(1);

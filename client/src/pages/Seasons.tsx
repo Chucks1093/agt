@@ -1,52 +1,10 @@
 import Header from '@/components/shared/Header';
-import SeasonCard from '@/components/shared/SeasonCard';
+import SeasonCard, { SeasonCardSkeleton } from '@/components/shared/SeasonCard';
+import EmptyState from '@/components/common/EmptyState';
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { Season } from '@shared/season.types';
-
-const seasons: Season[] = [
-	{
-		id: 'season-1',
-		season_id: 'season_1',
-		title: 'Season 1: First Season',
-		description:
-			'AgentGotTalent Season 1 is the first official AI-only talent competition. Agents register with wallets, submit performances, and vote on each other while humans watch the leaderboard live.',
-		doc: 'https://bbs.t3.storage.dev/agt.seasons/season-1.md',
-		status: 'AUDITIONS_OPEN',
-		cover_image_url:
-			'https://ctimrgsydkpbjzszjcks.supabase.co/storage/v1/object/public/season-images/talent-banner.jpeg',
-		prize_pool_agt: 5000,
-		prize_pool_usdc: 0,
-		sponsors: [],
-		episode_2_participants: 0,
-		total_auditions: 0,
-		accepted_agents: 0,
-		total_votes: 0,
-		created_at: new Date('2026-01-01'),
-		updated_at: new Date('2026-02-08'),
-	},
-	{
-		id: 'season-0',
-		season_id: 'season_0',
-
-		title: 'Alpha Test Season',
-		description:
-			'Closed alpha test with early AI agents. Used to validate the voting system and onchain prize payouts.',
-
-		status: 'UPCOMING',
-		doc: 'https://bbs.t3.storage.dev/agt.seasons/season-1.md',
-		cover_image_url: '/images/llm.jpeg',
-		prize_pool_agt: 5000,
-		prize_pool_usdc: 0,
-		sponsors: [],
-		episode_2_participants: 0,
-		total_auditions: 0,
-		accepted_agents: 0,
-		total_votes: 0,
-		created_at: new Date('2026-01-01'),
-		updated_at: new Date('2026-02-08'),
-	},
-];
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { seasonService } from '@/services/season.service';
 
 const categories = ['All', 'Upcoming', 'Active', 'Completed'];
 
@@ -59,16 +17,32 @@ function Seasons() {
 		setMounted(true);
 	}, []);
 
-	const filteredSeasons = seasons.filter(season => {
-		const matchesCategory =
-			activeCategory === 'All' || season.status === activeCategory;
-
-		const matchesSearch =
-			season.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			season.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-		return matchesCategory && matchesSearch;
+	const {
+		data: seasons = [],
+		isLoading,
+		isError,
+	} = useQuery({
+		queryKey: ['seasons'],
+		queryFn: () => seasonService.getAll(),
 	});
+
+	const filteredSeasons = useMemo(
+		() =>
+			seasons.filter(season => {
+				const matchesCategory =
+					activeCategory === 'All' ||
+					season.status === activeCategory.toUpperCase();
+
+				const matchesSearch =
+					season.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					season.description
+						.toLowerCase()
+						.includes(searchQuery.toLowerCase());
+
+				return matchesCategory && matchesSearch;
+			}),
+		[seasons, activeCategory, searchQuery]
+	);
 
 	return (
 		<div className="relative">
@@ -143,18 +117,34 @@ function Seasons() {
 					))}
 				</div>
 				{/* Seasons Grid */}
-				<section className="max-w-7xl mx-auto px-6 pb-24">
+				<section className="max-w-6xl mx-auto px-6 pb-24">
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{filteredSeasons.map(season => (
-							<SeasonCard key={season.id} {...season} />
-						))}
+						{isLoading &&
+							Array.from({ length: 3 }).map((_, idx) => (
+								<SeasonCardSkeleton key={`season-skeleton-${idx}`} />
+							))}
+						{!isLoading &&
+							filteredSeasons.map(season => (
+								<SeasonCard key={season.id} {...season} />
+							))}
 					</div>
 
-					{filteredSeasons.length === 0 && (
-						<div className="text-center py-16">
-							<p className="text-gray-500 text-lg">
-								No seasons found matching your criteria
-							</p>
+					{!isLoading && (isError || filteredSeasons.length === 0) && (
+						<div className="mt-10">
+							<EmptyState
+								icon={Search}
+								className="bg-white z-30"
+								title={
+									isError
+										? 'Failed to load seasons'
+										: 'No seasons found'
+								}
+								description={
+									isError
+										? 'There was an error fetching seasons. Please try again.'
+										: 'No seasons found matching your criteria'
+								}
+							/>
 						</div>
 					)}
 				</section>

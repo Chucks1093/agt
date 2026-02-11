@@ -2,7 +2,7 @@ import { Bot, MoveRight } from 'lucide-react';
 import type { SeasonStatus } from '@shared/season.types';
 import { SeasonStatusBadge } from './StatusBadge';
 import { Link } from 'react-router';
-
+import { Skeleton } from '../ui/skeleton';
 export interface Season {
 	id: string;
 
@@ -24,6 +24,49 @@ export interface Season {
 	updated_at: Date;
 }
 
+export const SeasonCardSkeleton = () => {
+	return (
+		<div className="rounded-3xl border border-gray-200 p-2 overflow-hidden shadow-sm bg-white relative">
+			{/* Image Container */}
+			<div className="md:h-[16rem] h-[13rem] relative overflow-hidden rounded-3xl">
+				{/* Cover Image Skeleton */}
+				<Skeleton className="w-full h-full rounded-3xl" />
+
+				{/* Status Badge Skeleton (top right) */}
+				<div className="absolute top-3 right-3">
+					<Skeleton className="h-7 w-24 rounded-full" />
+				</div>
+			</div>
+
+			{/* Content */}
+			<div className="p-4">
+				{/* Title Skeleton */}
+				<div className="mb-3 space-y-2">
+					<Skeleton className="h-6 w-4/5 rounded-md" />
+				</div>
+
+				{/* Divider row */}
+				<div className="border-t-2 mt-4 py-2 border-gray-200 border-dashed flex items-center justify-between">
+					{/* Prize */}
+					<div className="flex items-center py-2 gap-2">
+						<Skeleton className="h-5 w-5 rounded-md" />
+						<Skeleton className="h-5 w-24 rounded-md" />
+					</div>
+
+					{/* Agents */}
+					<div className="flex items-center py-2 gap-2">
+						<Skeleton className="h-6 w-6 rounded-md" />
+						<Skeleton className="h-5 w-24 rounded-md" />
+					</div>
+				</div>
+
+				{/* Button Skeleton */}
+				<Skeleton className="mt-3 h-11 w-full rounded-lg" />
+			</div>
+		</div>
+	);
+};
+
 interface SeasonCardProps extends Season {
 	key?: string;
 }
@@ -34,10 +77,16 @@ const SeasonCard = (props: SeasonCardProps) => {
 	return (
 		<div
 			rel="noopener noreferrer"
-			className={`rounded-3xl border border-gray-200 p-2 overflow-hidden shadow-sm hover:shadow-md transition-all bg-white relative ${isNotActive && 'opacity-50'}`}
+			className={`rounded-3xl border p-2 overflow-hidden shadow-sm transition-all relative ${
+				isNotActive
+					? 'border-gray-200 bg-gray-50 cursor-not-allowed select-none'
+					: 'border-gray-200 bg-white hover:shadow-md'
+			}`}
 		>
 			{/* Image Container */}
-			<div className="md:h-[16rem] h-[13rem] relative overflow-hidden rounded-3xl">
+			<div
+				className={`md:h-[16rem] h-[13rem] relative overflow-hidden rounded-3xl ${isNotActive ? 'grayscale' : ''}`}
+			>
 				{/* Cover Image */}
 				<img
 					src={props.cover_image_url}
@@ -57,12 +106,18 @@ const SeasonCard = (props: SeasonCardProps) => {
 			{/* Content */}
 			<div className="p-4">
 				{/* Title */}
-				<h3 className="text-xl font-semibold font-manrope text-gray-600 mb-3 overflow-hidden line-clamp-2">
+				<h3
+					className={`text-xl font-semibold font-manrope mb-3 overflow-hidden line-clamp-2 ${
+						isNotActive ? 'text-gray-400' : 'text-gray-600'
+					}`}
+				>
 					{props.title}
 				</h3>
 
 				{/* Description */}
-				<p className="text-gray-400 line-clamp-2 text-sm">
+				<p
+					className={`line-clamp-2 text-sm ${isNotActive ? 'text-gray-400' : 'text-gray-400'}`}
+				>
 					{props.description}
 				</p>
 				<div className="border-t-2 mt-4 py-2 border-gray-200 border-dashed flex items-center justify-between">
@@ -72,22 +127,30 @@ const SeasonCard = (props: SeasonCardProps) => {
 							className="size-5 text-gray-700"
 							alt=""
 						/>
-						<p className="font-manrope font-bold text-gray-500">
+						<p
+							className={`font-manrope font-bold ${isNotActive ? 'text-gray-400' : 'text-gray-500'}`}
+						>
 							{props.prize_pool_agt} $AGT
 						</p>
 					</div>
 					<div className="flex items-center  py-2 gap-1">
 						<Bot className="size-6 text-gray-500" />
-						<p className="font-manrope font-bold text-gray-500">
+						<p
+							className={`font-manrope font-bold ${isNotActive ? 'text-gray-400' : 'text-gray-500'}`}
+						>
 							{props.total_auditions} Agents
 						</p>
 					</div>
 				</div>
 				<Link
 					to={`/seasons/${props.id}`}
-					className="bg-gray-800 hover:bg-gray-700 active:bg-gray-700 disabled:bg-gray-700 mt-3 disabled:cursor-not-allowed text-white font-semibold font-jakarta px-14 py-2.5 rounded-lg transition-colors duration-200 outline-none ring-2 ring-gray-500 ring-offset-2 cursor-pointer w-full flex items-center gap-3 justify-center"
+					className={`mt-3 text-white font-semibold font-jakarta px-14 py-2.5 rounded-lg transition-colors duration-200 outline-none ring-2 ring-gray-500 ring-offset-2 w-full flex items-center gap-3 justify-center ${
+						isNotActive
+							? 'bg-gray-400 cursor-not-allowed pointer-events-none'
+							: 'bg-gray-800 hover:bg-gray-700 active:bg-gray-700 cursor-pointer'
+					}`}
 				>
-					View Details <MoveRight />
+					{isNotActive ? 'Coming Soon' : 'View Details'} <MoveRight />
 				</Link>
 			</div>
 		</div>

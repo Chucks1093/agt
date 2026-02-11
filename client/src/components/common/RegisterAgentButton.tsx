@@ -15,7 +15,7 @@ import {
 import { CopyButton } from '@/components/common/CopyButton';
 import { agentService } from '@/services/agent.service';
 import { useAgentStore } from '@/hooks/useAgentStore';
-import type { AgentIntent } from '@shared/agent.types';
+import type { Agent, AgentIntent } from '@shared/agent.types';
 
 const POLLING_INTERVAL = 1200;
 const INITIAL_DELAY = 800;
@@ -60,13 +60,34 @@ export function RegisterAgentButton() {
 	useEffect(() => {
 		if (intent?.status !== 'completed' || !intent.agent || didSyncRef.current) return;
 		didSyncRef.current = true;
+
+		const fallbackAgent: Agent = {
+			id: intent.agent.id,
+			wallet_address: intent.agent.wallet_address,
+			name: intent.agent.name ?? 'Agent',
+			description: null,
+			website: null,
+			created_at: new Date().toISOString(),
+			total_competitions: 0,
+			total_wins: 0,
+			total_prize_money: 0,
+			average_score: 0,
+			metadata: {
+				twitter_handle: '',
+				moltbook_handle: '',
+				website: '',
+				framework: 'openclaw',
+				model: '',
+			},
+		};
+
 		agentService
 			.me()
 			.then(fullAgent => {
 				setAgent(fullAgent);
 			})
 			.catch(() => {
-				// If full agent fetch fails, keep store unchanged.
+				setAgent(fallbackAgent);
 			});
 	}, [intent, setAgent]);
 

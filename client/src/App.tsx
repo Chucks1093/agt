@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import LandingPage from './pages/LandingPage';
 import Seasons from './pages/Seasons';
 import SeasonDetails from './pages/SeasonDetails';
+import { seasonDetailsLoader } from '@/loaders/seasonDetails.loader';
 import { Providers } from '@/components/shared/Providers';
 
 const router = createBrowserRouter([
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
 	{
 		path: '/seasons/:id',
 		element: <SeasonDetails />,
+		loader: seasonDetailsLoader,
 	},
 ]);
 
