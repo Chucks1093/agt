@@ -18,7 +18,7 @@ function getCorsHeaders(req: NextRequest) {
 	};
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
 	// only apply to API routes
 	if (!req.nextUrl.pathname.startsWith("/api")) {
 		return NextResponse.next();

@@ -11,7 +11,7 @@ export function shapeIntent(row: AgentIntentRow): AgentIntent {
       ? {
           id: row.agent_id,
           wallet_address: row.agent_wallet_address,
-          name: row.agent_name,
+          name: row.agent_name ?? "Agent",
         }
       : null,
   };

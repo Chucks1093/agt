@@ -11,9 +11,9 @@ function err(message: string, status = 400, code?: string) {
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   if (!id) return err("MISSING_SEASON_ID", 400, "MISSING_SEASON_ID");
 
   const { data, error } = await supabaseAdmin
