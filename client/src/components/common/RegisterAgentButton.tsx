@@ -1,6 +1,5 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Bot, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -13,130 +12,152 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
-import { CopyButton } from '@/components//common/CopyButton';
+import { CopyButton } from '@/components/common/CopyButton';
+import { agentService } from '@/services/agent.service';
+import { useAgentStore } from '@/hooks/useAgentStore';
+import type { AgentIntent } from '@shared/agent.types';
 
-type Intent = {
-	id: string;
-	status: 'pending' | 'completed' | 'expired';
-	agent?: { id: string; wallet_address: string; name: string | null };
-};
+const POLLING_INTERVAL = 1200;
+const INITIAL_DELAY = 800;
+const STATUS_UPDATE_THRESHOLD = 120_000; // 2 minutes
 
 export function RegisterAgentButton() {
 	const [open, setOpen] = useState(false);
-	const [intent, setIntent] = useState<Intent | null>(null);
-	const [statusText, setStatusText] = useState<string>(
-		'Create a registration request.'
+	const [intentId, setIntentId] = useState<string | null>(null);
+	const [startTime, setStartTime] = useState<number>(Date.now());
+
+	const setAgent = useAgentStore(state => state.setAgent);
+	const didSyncRef = useRef(false);
+
+	// Mutation for creating intent
+	const createIntentMutation = useMutation({
+		mutationFn: () => agentService.createIntent(),
+		onSuccess: intent => {
+			setIntentId(intent.id);
+			setStartTime(Date.now());
+		},
+	});
+
+	// Query for polling intent status
+	const { data: intent } = useQuery({
+		queryKey: ['agent-intent', intentId],
+		queryFn: () => agentService.getIntent(intentId!),
+		enabled: open && !!intentId,
+		refetchInterval: query => {
+			const data = query.state.data as AgentIntent | undefined;
+			// Stop polling if completed or expired
+			if (data?.status === 'completed' || data?.status === 'expired') {
+				return false;
+			}
+			return POLLING_INTERVAL;
+		},
+		refetchIntervalInBackground: true,
+		refetchOnWindowFocus: false,
+		initialDataUpdatedAt: INITIAL_DELAY,
+	});
+
+	// Handle completed registration (sync full agent)
+	useEffect(() => {
+		if (intent?.status !== 'completed' || !intent.agent || didSyncRef.current) return;
+		didSyncRef.current = true;
+		agentService
+			.me()
+			.then(fullAgent => {
+				setAgent(fullAgent);
+			})
+			.catch(() => {
+				// If full agent fetch fails, keep store unchanged.
+			});
+	}, [intent, setAgent]);
+
+	// Calculate status text based on current state
+	const statusText = useMemo(() => {
+		if (createIntentMutation.isPending) {
+			return 'Creating registration request…';
+		}
+
+		if (createIntentMutation.isError) {
+			return 'Could not create registration request.';
+		}
+
+		if (!intent) {
+			return 'Waiting for registration request…';
+		}
+
+		if (intent.status === 'completed') {
+			return 'Registration complete ✅';
+		}
+
+		if (intent.status === 'expired') {
+			return 'Request expired. Close and try again.';
+		}
+
+		// Check elapsed time for pending status
+		const elapsed = Date.now() - startTime;
+		if (elapsed > STATUS_UPDATE_THRESHOLD) {
+			return 'Still waiting… (your agent just needs to run the command once)';
+		}
+
+		return 'Waiting for your agent to complete registration…';
+	}, [
+		createIntentMutation.isPending,
+		createIntentMutation.isError,
+		intent,
+		startTime,
+	]);
+
+	// Generate registration URL
+	const registrationUrl = useMemo(() => {
+		const origin = window.location.origin;
+		const baseUrl = `${origin}/register.md`;
+		return intentId
+			? `${baseUrl}?intent=${encodeURIComponent(intentId)}`
+			: baseUrl;
+	}, [intentId]);
+
+	// Generate copy text
+	const copyText = useMemo(
+		() =>
+			[
+				'Register for AgentGotTalent:',
+				`1) Open this link: ${registrationUrl}`,
+				'2) Follow the instructions to create a session + register.',
+				'3) Reply with the final JSON response.',
+			].join('\n'),
+		[registrationUrl]
 	);
 
-	// Create an intent when opening
-	useEffect(() => {
-		if (!open) return;
-		let cancelled = false;
+	// Handle dialog open/close
+	const handleOpenChange = useCallback(
+		(isOpen: boolean) => {
+			setOpen(isOpen);
 
-		(async () => {
-			setStatusText('Creating registration request…');
-			const r = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/api/agent/intents`,
-				{
-					method: 'POST',
-				}
-			);
-			const j = await r.json().catch(() => ({}));
-			if (!r.ok) {
-				setStatusText('Could not create registration request.');
-				return;
+			if (isOpen) {
+				// Reset state and create new intent
+				setIntentId(null);
+				setStartTime(Date.now());
+				didSyncRef.current = false;
+				createIntentMutation.reset();
+				createIntentMutation.mutate();
+			} else {
+				// Reset on close
+				setIntentId(null);
+				didSyncRef.current = false;
+				createIntentMutation.reset();
 			}
-			if (!cancelled) {
-				setIntent(j.intent as Intent);
-				setStatusText('Waiting for your agent to complete registration…');
-			}
-		})();
+		},
+		[createIntentMutation]
+	);
 
-		return () => {
-			cancelled = true;
-		};
-	}, [open]);
+	const showSpinner = useMemo(
+		() => createIntentMutation.isPending || intent?.status === 'pending',
+		[createIntentMutation.isPending, intent?.status]
+	);
 
-	// Poll intent while dialog open
-	useEffect(() => {
-		if (!open || !intent?.id) return;
-		let stopped = false;
-		const startedAt = Date.now();
-
-		const tick = async () => {
-			if (stopped) return;
-
-			// After a bit, show explicit reconnect help. This reduces “spinner anxiety”.
-			const elapsedMs = Date.now() - startedAt;
-
-			const r = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/api/agent/intents/${intent.id}`,
-				{
-					cache: 'no-store',
-				}
-			);
-			const j = await r.json().catch(() => ({}));
-			if (r.ok && j?.intent) {
-				const next = j.intent as Intent;
-				setIntent(next);
-				if (next.status === 'completed' && next.agent) {
-					setStatusText('Registration complete ✅');
-					try {
-						const { useAgentStore } =
-							await import('@/hooks/useAgentStore');
-						useAgentStore.getState().setAgent(next.agent);
-					} catch {
-						// ignore
-					}
-					return;
-				}
-				if (next.status === 'expired') {
-					setStatusText('Request expired. Close and try again.');
-					return;
-				}
-			}
-
-			if (elapsedMs > 120_000) {
-				setStatusText(
-					'Still waiting… (your agent just needs to run the command once)'
-				);
-			}
-
-			setTimeout(tick, 1200);
-		};
-
-		const t = setTimeout(tick, 800);
-		return () => {
-			stopped = true;
-			clearTimeout(t);
-		};
-	}, [open, intent?.id]);
-
-	const origin = typeof window !== 'undefined' ? window.location.origin : '';
-
-	const urlBase = origin ? `${origin}/register.md` : '/register.md';
-	const url = intent?.id
-		? `${urlBase}?intent=${encodeURIComponent(intent.id)}`
-		: urlBase;
-
-	const copyText = [
-		'Register for AgentGotTalent:',
-		`1) Open this link: ${url}`,
-		'2) Follow the instructions to create a session + register.',
-		'3) Reply with the final JSON response.',
-	].join('\n');
+	const hasError = createIntentMutation.isError;
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={v => {
-				setOpen(v);
-				if (v) {
-					setIntent(null);
-					setStatusText('Create a registration request.');
-				}
-			}}
-		>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button variant="secondary" className="h-9 rounded-lg px-5">
 					<Bot className="mr-1 h-4 w-4" />
@@ -155,11 +176,17 @@ export function RegisterAgentButton() {
 				</DialogHeader>
 
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
-					{intent?.status === 'pending' ? (
-						<Loader2 className="h-4 w-4 animate-spin" />
-					) : null}
+					{showSpinner && <Loader2 className="h-4 w-4 animate-spin" />}
 					<span>{statusText}</span>
 				</div>
+
+				{hasError && (
+					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+						{createIntentMutation.error instanceof Error
+							? createIntentMutation.error.message
+							: 'An error occurred. Please try again.'}
+					</div>
+				)}
 
 				<pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border bg-muted p-3 text-xs leading-relaxed">
 					{copyText}

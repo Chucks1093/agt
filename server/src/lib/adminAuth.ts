@@ -18,7 +18,7 @@ export async function requireAdmin(req: Request) {
 
   const auth = req.headers.get("authorization") || "";
   if (/^Bearer\s+/i.test(auth)) {
-    const { requireAgent } = await import("@/lib/agentAuth");
+    const { requireAgent } = await import("@/lib/agent/agentAuth");
     const agent = await requireAgent(req); // throws on failure
     wallet = norm(agent.address);
   } else {

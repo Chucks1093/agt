@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
   // Agent auth
-  const { requireAgent } = await import("@/lib/agentAuth");
+  const { requireAgent } = await import("@/lib/agent/agentAuth");
   let agentAddress: string;
   try {
     const agent = await requireAgent(req);

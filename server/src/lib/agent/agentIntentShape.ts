@@ -1,6 +1,7 @@
-import type { AgentIntentRow } from "@/lib/agentIntentsDb";
+import type { AgentIntent } from "@shared/agent.types";
+import type { AgentIntentRow } from "@/lib/agent/agentIntentsDb";
 
-export function shapeIntent(row: AgentIntentRow) {
+export function shapeIntent(row: AgentIntentRow): AgentIntent {
   return {
     id: row.id,
     status: row.status,

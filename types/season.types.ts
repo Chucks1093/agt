@@ -33,7 +33,7 @@ export interface Season {
 
 	// Prize info
 	prize_pool_agt: number; // Total prize in $AGT
-	prize_pool_usdc?: number; // Optional USDC prize
+	prize_pool_usdc: number;
 
 	// Sponsor info
 	sponsors: SeasonSponsor[];

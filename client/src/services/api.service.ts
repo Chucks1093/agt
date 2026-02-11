@@ -1,6 +1,5 @@
 import { env } from '@/utils/env.utils';
 import axios, { type AxiosInstance, AxiosError } from 'axios';
-import Cookies from 'js-cookie';
 
 export interface APIResponse<T = undefined> {
 	success: boolean;
@@ -38,59 +37,47 @@ export class ApiError extends Error {
 export class BaseApiService {
 	protected api: AxiosInstance;
 	protected API_URL: string;
-	private ACCESS_TOKEN: string = 'course_hub_access_token';
-	private REFRESH_TOKEN: string = 'course_hub_refresh_token';
+	private ACCESS_TOKEN: string = 'agt_agent_token';
 
 	constructor() {
 		this.API_URL = env.VITE_BACKEND_URL;
 
 		this.api = axios.create({
 			baseURL: this.API_URL,
-			withCredentials: true, // Send cookies
 		});
 
 		this.setupInterceptors();
 	}
 
 	private setupInterceptors() {
-		// Response interceptor - handles token refresh
+		// Attach Bearer token when available
+		this.api.interceptors.request.use(config => {
+			const token = this.getAuthToken();
+			if (token) {
+				config.headers = config.headers ?? {};
+				config.headers.Authorization = `Bearer ${token}`;
+			}
+			return config;
+		});
+
+		// Clear auth on 401
 		this.api.interceptors.response.use(
 			response => response,
-			async error => {
-				const originalRequest = error.config;
-
-				if (
-					error.response?.status === 401 &&
-					error.response?.data?.code === 'TOKEN_EXPIRED' &&
-					!originalRequest._retry
-				) {
-					originalRequest._retry = true;
-
-					try {
-						// Call refresh endpoint
-						await this.api.post('/auth/refresh');
-
-						// Retry original request
-						return this.api(originalRequest);
-					} catch (refreshError) {
-						// Refresh failed - clear auth and redirect
-						this.clearAuth();
-						window.location.href = '/login';
-						return Promise.reject(refreshError);
-					}
+			error => {
+				if (error?.response?.status === 401) {
+					this.clearAuth();
 				}
-
 				return Promise.reject(error);
 			}
 		);
 	}
 
-	// Store authentication token in cookie
 	public setAuthToken(token: string): void {
-		// Store token with expiry of 7 days
-		Cookies.set(this.ACCESS_TOKEN, token, {
-			expires: 7,
-		});
+		localStorage.setItem(this.ACCESS_TOKEN, token);
+	}
+
+	public getAuthToken(): string | null {
+		return localStorage.getItem(this.ACCESS_TOKEN);
 	}
 
 	// Common error handler
@@ -118,7 +105,6 @@ export class BaseApiService {
 
 	// Override this in child classes if needed
 	protected clearAuth(): void {
-		Cookies.remove(this.ACCESS_TOKEN);
-		Cookies.remove(this.REFRESH_TOKEN);
+		localStorage.removeItem(this.ACCESS_TOKEN);
 	}
 }

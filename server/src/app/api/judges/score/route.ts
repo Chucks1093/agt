@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: Request) {
   // Judge auth = agent JWT + must be in season_judges
-  const { requireAgent } = await import("@/lib/agentAuth");
+  const { requireAgent } = await import("@/lib/agent/agentAuth");
   let judgeWallet: string;
   try {
     const agent = await requireAgent(req);

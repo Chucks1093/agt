@@ -28,7 +28,7 @@ type StoredAgent = {
 };
 
 export function AgentStatusBadge() {
-	const agent = useAgentStore((s) => s.agent) as StoredAgent | null;
+	const agent = useAgentStore((s) => s.agent) as StoredAgent;
 	const clearAgent = useAgentStore((s) => s.clearAgent);
 	const [copied, setCopied] = useState(false);
 

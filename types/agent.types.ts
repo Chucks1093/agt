@@ -12,31 +12,29 @@ export interface Agent {
 	name: string;
 	description?: string | null;
 	website?: string | null;
-	claimed: boolean;
 	created_at: string;
 
 	// Optional / future fields
 	bio?: string;
 	avatar_url?: string;
-	role?: AgentRole | AgentRole[];
-	api_key?: string;
+	role?: AgentRole;
 	webhook_url?: string;
 	updated_at?: string;
 	last_active?: string;
 
 	// Stats (future)
-	total_competitions?: number;
-	total_wins?: number;
-	total_prize_money?: number;
-	average_score?: number;
+	total_competitions: number;
+	total_wins: number;
+	total_prize_money: number;
+	average_score: number;
 
 	// Metadata (future)
-	metadata?: {
-		twitter_handle?: string;
-		moltbook_handle?: string;
-		website?: string;
-		framework?: string; // 'openclaw', 'langchain', etc.
-		model?: string;
+	metadata: {
+		twitter_handle: string;
+		moltbook_handle: string;
+		website: string;
+		framework: string; // 'openclaw', 'langchain', etc.
+		model: string;
 	};
 }
 
@@ -54,7 +52,7 @@ export interface AgentIntent {
 	agent: {
 		id: string;
 		wallet_address: string;
-		name: string | null;
+		name: string;
 	} | null;
 }
 
@@ -67,7 +65,6 @@ export interface AgentChallenge {
 }
 
 export interface AgentSessionResponse {
-	ok: true;
 	token: string;
 	address: string;
 }

@@ -25,7 +25,6 @@ const seasons: Season[] = [
 		created_at: new Date('2026-01-01'),
 		updated_at: new Date('2026-02-08'),
 	},
-
 	{
 		id: 'season-0',
 		season_id: 'season_0',

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { isAddress, verifyMessage } from "viem";
+import type { AgentChallenge } from "@shared/agent.types";
 
 export type AgentChallengeRow = {
   address: string;
@@ -9,7 +10,7 @@ export type AgentChallengeRow = {
   expires_at: string;
 };
 
-export async function createChallenge(addressRaw: string) {
+export async function createChallenge(addressRaw: string): Promise<AgentChallenge> {
   const address = addressRaw?.trim() as string;
   if (!isAddress(address)) throw new Error("INVALID_ADDRESS");
 

@@ -20,28 +20,21 @@ on conflict (wallet_address) do nothing;
 -- 2) Seasons
 create table if not exists public.seasons (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
-  auditions_start timestamptz not null,
-  auditions_end timestamptz not null,
-  performance_start timestamptz not null,
-  performance_end timestamptz not null,
-  voting_start timestamptz not null,
-  voting_end timestamptz not null,
-  prize_total_wei numeric(78,0) not null default 0,
-  prize_split_bps int[] not null default '{5000,3000,2000}', -- 50%/30%/20%
-  chain_id int not null default 31337, -- anvil by default
-  contest_address text null,
-  token_address text null,
+  season_id text not null,
+  title text not null,
+  description text not null,
+  doc text not null,
+  status text not null default 'UPCOMING' check (status in ('UPCOMING','AUDITIONS_OPEN','AUDITIONS_CLOSED','EPISODE_1','VOTING','EPISODE_2','COMPLETED')),
+  cover_image_url text not null,
+  prize_pool_agt numeric not null,
+  prize_pool_usdc numeric not null,
+  sponsors jsonb not null,
+  episode_2_participants int not null,
+  total_auditions int not null,
+  accepted_agents int not null,
+  total_votes int not null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint seasons_time_order check (
-    auditions_start < auditions_end
-    and auditions_end <= performance_start
-    and performance_start < performance_end
-    and performance_start <= voting_start
-    and voting_start < voting_end
-    and voting_end <= performance_end
-  )
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists seasons_created_at_idx on public.seasons (created_at desc);
@@ -53,9 +46,10 @@ create table if not exists public.agents (
   description text null,
   website text null,
   api_key_hash text not null,
-  claimed boolean not null default false,
-  claimed_by_wallet text null,
-  created_at timestamptz not null default now()
+  role text not null default 'PARTICIPANT',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_active timestamptz not null default now()
 );
 
 create unique index if not exists agents_name_uniq on public.agents (name);

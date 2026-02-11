@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { requireAgent } from "@/lib/agent/agentAuth";
+
+function ok<T>(data: T, message = "OK") {
+  return NextResponse.json({ success: true, data, message });
+}
+
+function err(message: string, status = 400, code?: string) {
+  return NextResponse.json({ success: false, message, code }, { status });
+}
 
 function norm(addr: string) {
   return addr.trim().toLowerCase();
@@ -7,14 +16,13 @@ function norm(addr: string) {
 
 export async function POST(req: Request) {
   // Agent auth (JWT)
-  const { requireAgent } = await import("@/lib/agentAuth");
   let agentAddress: string;
   try {
     const agent = await requireAgent(req);
     agentAddress = agent.address;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "UNAUTHORIZED";
-    return NextResponse.json({ error: msg }, { status: 401 });
+    return err(msg, 401, msg);
   }
 
   const body = await req.json().catch(() => ({}));
@@ -28,10 +36,10 @@ export async function POST(req: Request) {
   const model = (body?.model as string | null | undefined) ?? null;
   const socialLink = (body?.socialLink as string | null | undefined) ?? null;
 
-  if (!seasonId) return NextResponse.json({ error: "MISSING_SEASON_ID" }, { status: 400 });
-  if (!displayName) return NextResponse.json({ error: "MISSING_DISPLAY_NAME" }, { status: 400 });
-  if (!pitch) return NextResponse.json({ error: "MISSING_PITCH" }, { status: 400 });
-  if (!sampleUrl) return NextResponse.json({ error: "MISSING_SAMPLE_URL" }, { status: 400 });
+  if (!seasonId) return err("MISSING_SEASON_ID", 400, "MISSING_SEASON_ID");
+  if (!displayName) return err("MISSING_DISPLAY_NAME", 400, "MISSING_DISPLAY_NAME");
+  if (!pitch) return err("MISSING_PITCH", 400, "MISSING_PITCH");
+  if (!sampleUrl) return err("MISSING_SAMPLE_URL", 400, "MISSING_SAMPLE_URL");
 
   // Validate window
   const { data: season, error: seasonErr } = await supabaseAdmin
@@ -40,14 +48,13 @@ export async function POST(req: Request) {
     .eq("id", seasonId)
     .maybeSingle();
 
-  if (seasonErr) return NextResponse.json({ error: seasonErr.message }, { status: 500 });
-  if (!season) return NextResponse.json({ error: "SEASON_NOT_FOUND" }, { status: 404 });
+  if (seasonErr) return err(seasonErr.message, 500, "SERVER_ERROR");
+  if (!season) return err("SEASON_NOT_FOUND", 404, "SEASON_NOT_FOUND");
 
   const now = Date.now();
   const start = new Date(season.auditions_start).getTime();
   const end = new Date(season.auditions_end).getTime();
-  if (!(now >= start && now <= end))
-    return NextResponse.json({ error: "AUDITIONS_CLOSED" }, { status: 400 });
+  if (!(now >= start && now <= end)) return err("AUDITIONS_CLOSED", 400, "AUDITIONS_CLOSED");
 
   // Upsert agent by wallet
   const wallet = norm(agentAddress);
@@ -57,8 +64,7 @@ export async function POST(req: Request) {
     .eq("wallet_address", wallet)
     .maybeSingle();
 
-  if (agentLookupErr)
-    return NextResponse.json({ error: agentLookupErr.message }, { status: 500 });
+  if (agentLookupErr) return err(agentLookupErr.message, 500, "SERVER_ERROR");
 
   let agentId = existingAgent?.id as string | undefined;
 
@@ -71,13 +77,11 @@ export async function POST(req: Request) {
         description: null,
         website: null,
         api_key_hash: "mvp_wallet_only",
-        claimed: true,
-        claimed_by_wallet: wallet,
       })
       .select("id")
       .single();
 
-    if (createErr) return NextResponse.json({ error: createErr.message }, { status: 500 });
+    if (createErr) return err(createErr.message, 500, "SERVER_ERROR");
     agentId = created.id;
   }
 
@@ -92,18 +96,16 @@ export async function POST(req: Request) {
         talent,
         pitch,
         sample_url: sampleUrl,
-        performance_title: performanceTitle ?? null,
-        short_bio: shortBio ?? null,
-        model: model ?? null,
-        social_link: socialLink ?? null,
         status: "pending",
       },
       { onConflict: "season_id,agent_id" }
     )
-    .select("id, status")
+    .select(
+      "id, season_id, agent_id, display_name, talent, pitch, sample_url, status, reviewed_by_wallet, reviewed_at, created_at"
+    )
     .single();
 
-  if (auditionErr) return NextResponse.json({ error: auditionErr.message }, { status: 500 });
+  if (auditionErr) return err(auditionErr.message, 500, "SERVER_ERROR");
 
-  return NextResponse.json({ ok: true, audition });
+  return ok({ audition }, "AUDITION_SUBMITTED");
 }

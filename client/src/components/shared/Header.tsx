@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { AgentStatusBadge } from '../common/AgentStatusBadge';
+import { WalletConnectDialog } from '../common/WalletConnectDialog';
 
 function Header() {
 	return (
@@ -46,7 +46,7 @@ function Header() {
 				</div>
 
 				<div className="flex items-center gap-2">
-					<AgentStatusBadge />
+					<WalletConnectDialog />
 				</div>
 			</div>
 		</div>

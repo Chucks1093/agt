@@ -1,15 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-export type ConnectedAgent = {
-	id: string;
-	wallet_address: string;
-	name: string | null;
-};
+import type { Agent } from '@shared/agent.types';
 
 type AgentStore = {
-	agent: ConnectedAgent | null;
-	setAgent: (agent: ConnectedAgent) => void;
+	agent: Agent | null;
+	setAgent: (agent: Agent) => void;
 	clearAgent: () => void;
 };
 

@@ -1,6 +1,8 @@
+import SeasonAuditionsTab from '@/components/landing-page/SeasonAuditionsTab';
 import SeasonJudgesTab from '@/components/landing-page/SeasonJudgesTab';
 import SeasonOverivewTab from '@/components/landing-page/SeasonOverivewTab';
 import SeasonOverviewCard from '@/components/landing-page/SeasonOverviewCard';
+import SeasonPerformanceTab from '@/components/landing-page/SeasonPerformanceTab';
 import TabTriggers from '@/components/landing-page/TabTriggers';
 import Header from '@/components/shared/Header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,6 +36,7 @@ function SeasonDetails() {
 	const { id } = useParams();
 	const [loading, setLoading] = useState(false);
 	const [currentSeason, setCurrentSeason] = useState<Season | null>(null);
+	const [currentTab, setCurrentTab] = useState('overview');
 
 	useEffect(() => {
 		const fetchSeasonDetails = async () => {
@@ -53,6 +56,8 @@ function SeasonDetails() {
 
 	if (loading) return <Skeleton className="h-[18rem] w-full" />;
 
+	const showOverviewCard = currentTab === 'overview' || currentTab === 'judge';
+
 	return (
 		currentSeason && (
 			<div>
@@ -69,7 +74,11 @@ function SeasonDetails() {
 					/>
 				</div>
 				<div>
-					<Tabs defaultValue="overview" className="w-full">
+					<Tabs
+						defaultValue="overview"
+						className="w-full"
+						onValueChange={tab => setCurrentTab(tab)}
+					>
 						<div className="bg-gray-50 px-6">
 							<TabTriggers
 								tabs={[
@@ -85,17 +94,20 @@ function SeasonDetails() {
 									{
 										value: 'auditions',
 										label: 'Auditions',
-										count: 20,
+										count: currentSeason.total_auditions,
 									},
 									{
 										value: 'votes',
 										label: 'Votes',
-										count: 20,
+										count: currentSeason.total_votes,
+									},
+									{
+										value: 'performance',
+										label: 'Performances',
 									},
 									{
 										value: 'leaderboard',
 										label: 'Leaderboard',
-										count: 32,
 									},
 								]}
 							/>
@@ -106,15 +118,19 @@ function SeasonDetails() {
 							<div className="flex-1 min-w-0">
 								<SeasonOverivewTab markdownPath={currentSeason.doc} />
 								<SeasonJudgesTab />
+								<SeasonAuditionsTab />
+								<SeasonPerformanceTab />
 							</div>
 
 							{/* Sticky sidebar - fixed width on desktop */}
-							<aside className="w-full md:w-[380px] flex-shrink-0">
-								<SeasonOverviewCard
-									{...currentSeason}
-									className="md:sticky md:top-[5rem]"
-								/>
-							</aside>
+							{showOverviewCard && (
+								<aside className="w-full md:w-[380px] flex-shrink-0">
+									<SeasonOverviewCard
+										{...currentSeason}
+										className="md:sticky md:top-[5rem]"
+									/>
+								</aside>
+							)}
 						</div>
 					</Tabs>
 				</div>

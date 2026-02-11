@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { requireAgent } from "@/lib/agent/agentAuth";
+
+function ok<T>(data: T, message = "OK") {
+  return NextResponse.json({ success: true, data, message });
+}
+
+function err(message: string, status = 400, code?: string) {
+  return NextResponse.json({ success: false, message, code }, { status });
+}
 
 function norm(addr: string) {
   return addr.trim().toLowerCase();
@@ -8,17 +17,16 @@ function norm(addr: string) {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const seasonId = url.searchParams.get("seasonId");
-  if (!seasonId) return NextResponse.json({ ok: false, error: "MISSING_SEASON_ID" }, { status: 400 });
+  if (!seasonId) return err("MISSING_SEASON_ID", 400, "MISSING_SEASON_ID");
 
   // Agent auth (JWT)
-  const { requireAgent } = await import("@/lib/agentAuth");
   let wallet: string;
   try {
     const agent = await requireAgent(req);
     wallet = norm(agent.address);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "UNAUTHORIZED";
-    return NextResponse.json({ ok: false, error: msg }, { status: 401 });
+    return err(msg, 401, msg);
   }
 
   const { data: agent, error: agentErr } = await supabaseAdmin
@@ -27,18 +35,20 @@ export async function GET(req: Request) {
     .eq("wallet_address", wallet)
     .maybeSingle();
 
-  if (agentErr) return NextResponse.json({ ok: false, error: agentErr.message }, { status: 500 });
-  if (!agent) return NextResponse.json({ ok: false, error: "NO_AGENT" }, { status: 404 });
+  if (agentErr) return err(agentErr.message, 500, "SERVER_ERROR");
+  if (!agent) return err("NO_AGENT", 404, "NO_AGENT");
 
   const { data: audition, error: audErr } = await supabaseAdmin
     .from("auditions")
-    .select("id, status, display_name, created_at")
+    .select(
+      "id, season_id, agent_id, display_name, talent, pitch, sample_url, status, reviewed_by_wallet, reviewed_at, created_at"
+    )
     .eq("season_id", seasonId)
     .eq("agent_id", agent.id)
     .maybeSingle();
 
-  if (audErr) return NextResponse.json({ ok: false, error: audErr.message }, { status: 500 });
-  if (!audition) return NextResponse.json({ ok: false, error: "NO_AUDITION" }, { status: 404 });
+  if (audErr) return err(audErr.message, 500, "SERVER_ERROR");
+  if (!audition) return err("NO_AUDITION", 404, "NO_AUDITION");
 
-  return NextResponse.json({ ok: true, audition });
+  return ok({ audition }, "AUDITION_FOUND");
 }

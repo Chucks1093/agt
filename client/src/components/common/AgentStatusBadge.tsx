@@ -14,18 +14,14 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { RegisterAgentButton } from './RegisterAgentButton';
+import type { Agent } from '@shared/agent.types';
+
 function short(addr: string) {
 	return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-type StoredAgent = {
-	id: string;
-	wallet_address: string;
-	name: string | null;
-};
-
 export function AgentStatusBadge() {
-	const agent = useAgentStore(s => s.agent) as StoredAgent | null;
+	const agent = useAgentStore(s => s.agent) as Pick<Agent, 'id' | 'wallet_address' | 'name'> | null;
 	const clearAgent = useAgentStore(s => s.clearAgent);
 	const [copied, setCopied] = useState(false);
 

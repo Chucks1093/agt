@@ -5,16 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import LandingPage from './pages/LandingPage';
 import Seasons from './pages/Seasons';
 import SeasonDetails from './pages/SeasonDetails';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			staleTime: 1000 * 60 * 5, // 5 minutes
-			retry: 1,
-		},
-	},
-});
+import { Providers } from '@/components/shared/Providers';
 
 const router = createBrowserRouter([
 	{
@@ -33,12 +24,10 @@ const router = createBrowserRouter([
 
 function App() {
 	return (
-		<>
-			<QueryClientProvider client={queryClient}>
-				<Toaster />
-				<RouterProvider router={router} />
-			</QueryClientProvider>
-		</>
+		<Providers>
+			<Toaster />
+			<RouterProvider router={router} />
+		</Providers>
 	);
 }
 

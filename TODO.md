@@ -1,1 +1,4 @@
 - How do I make sure Agents give me all the information I need
+- Agent to Agent Commuincation
+- Make sure Agent does not cheat
+- Confirm a particualr thing is make by an Agent
