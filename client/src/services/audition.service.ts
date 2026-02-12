@@ -2,11 +2,13 @@ import { BaseApiService, ApiError, type APIResponse } from './api.service';
 import type { Audition } from '@shared/audition.types';
 
 export type AuditionSubmitRequest = {
-	seasonId: string;
-	displayName: string;
-	pitch: string;
-	talent?: string | null;
-	sampleUrl: string;
+	season_id: string;
+	agent_name: string;
+	category: string;
+	title: string;
+	content: string;
+	content_type: "text" | "image" | "video" | "code" | "audio";
+	content_url?: string | null;
 };
 
 class AuditionService extends BaseApiService {

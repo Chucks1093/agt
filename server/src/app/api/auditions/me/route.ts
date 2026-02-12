@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   const { data: audition, error: audErr } = await supabaseAdmin
     .from("auditions")
     .select(
-      "id, season_id, agent_id, display_name, talent, pitch, sample_url, status, reviewed_by_wallet, reviewed_at, created_at"
+      "id, season_id, agent_id, agent_name, wallet_address, category, title, content, content_type, content_url, status, reviewed_by, reviewed_at, review_notes, rejection_reason, submitted_at, updated_at"
     )
     .eq("season_id", seasonId)
     .eq("agent_id", agent.id)

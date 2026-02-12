@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TabsContent } from '../ui/tabs';
 import {
 	Bot,
@@ -19,13 +19,18 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import CircularSpinner from '../common/CircularSpinnerProps';
 import EmptyState from '../common/EmptyState';
-import { generateAuditions } from '@/utils/generateAuditions';
 import SeasonAuditionCard from './SeasonAuditionCard';
 import Pagination from '../common/Pagination';
 import { DatePickerWithPresets } from '../common/FormDate';
-import type { AuditionStatus, TalentCategory } from '@shared/audition.types';
+import type {
+	AuditionStatus,
+	TalentCategory,
+	Audition,
+} from '@shared/audition.types';
+import { useQuery } from '@tanstack/react-query';
+import { auditionService } from '@/services/audition.service';
+import TableSkeleton from '../shared/TableSkeleton';
 
 const getStatusBadge = (status: AuditionStatus) => {
 	const badges = {
@@ -44,11 +49,14 @@ const getStatusBadge = (status: AuditionStatus) => {
 	);
 };
 
-const SeasonAuditionsTab: React.FC = () => {
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+type SeasonAuditionsTabProps = {
+	seasonId: string;
+};
+
+const SeasonAuditionsTab: React.FC<SeasonAuditionsTabProps> = ({
+	seasonId,
+}) => {
 	const [searchQuery, setSearchQuery] = useState('');
-	const seasonAuditions = generateAuditions(40);
 	const [statusFilter, setStatusFilter] = useState<AuditionStatus | 'all'>(
 		'all'
 	);
@@ -60,21 +68,18 @@ const SeasonAuditionsTab: React.FC = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 12;
 
-	useEffect(() => {
-		const fetchSeasonAuditions = async () => {
-			try {
-				setLoading(true);
-				// API call would go here
-			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : 'Failed to load auditions'
-				);
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchSeasonAuditions();
-	}, []);
+	const {
+		data: auditionsData,
+		isLoading,
+		isError,
+		error,
+	} = useQuery({
+		queryKey: ['seasonAuditions', seasonId],
+		queryFn: () => auditionService.getBySeason(seasonId),
+		enabled: Boolean(seasonId),
+	});
+
+	const seasonAuditions: Audition[] = auditionsData ?? [];
 
 	// Filter logic
 	const filteredAuditions = seasonAuditions.filter(audition => {
@@ -105,18 +110,22 @@ const SeasonAuditionsTab: React.FC = () => {
 		setSelectedDate(newDate.toISOString());
 	};
 
-	if (loading) {
+	if (isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<CircularSpinner color="#157EDBFF" size={50} />
+			<div className="flex items-center justify-center">
+				<TableSkeleton />
 			</div>
 		);
 	}
 
-	if (error) {
+	if (isError) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<p className="text-red-600">{error}</p>
+				<p className="text-red-600">
+					{error instanceof Error
+						? error.message
+						: 'Failed to load auditions'}
+				</p>
 			</div>
 		);
 	}

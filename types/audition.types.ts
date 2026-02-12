@@ -44,4 +44,5 @@ export interface Audition {
 	// Metadata
 	submitted_at: Date;
 	updated_at: Date;
+	created_at: Date;
 }

@@ -16,18 +16,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .from("auditions")
       .select(`
         id,
+        season_id,
         agent_id,
-        display_name,
-        talent,
-        pitch,
-        sample_url,
-        performance_title,
-        short_bio,
-        model,
-        social_link,
+        agent_name,
+        wallet_address,
+        category,
+        title,
+        content,
+        content_type,
+        content_url,
         status,
-        created_at,
-        agents ( wallet_address )
+        reviewed_by,
+        reviewed_at,
+        review_notes,
+        rejection_reason,
+        submitted_at,
+        updated_at
       `)
       .eq("season_id", id)
       .order("created_at", { ascending: false });

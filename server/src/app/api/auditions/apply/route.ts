@@ -26,35 +26,46 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const seasonId = body?.seasonId as string | undefined;
-  const displayName = body?.displayName as string | undefined;
-  const pitch = body?.pitch as string | undefined;
-  const talent = (body?.talent as string | null | undefined) ?? null;
-  const sampleUrl = (body?.sampleUrl as string | null | undefined) ?? null;
-  const performanceTitle = (body?.performanceTitle as string | null | undefined) ?? null;
-  const shortBio = (body?.shortBio as string | null | undefined) ?? null;
-  const model = (body?.model as string | null | undefined) ?? null;
-  const socialLink = (body?.socialLink as string | null | undefined) ?? null;
+  const seasonId = body?.season_id as string | undefined;
+  const agentName = (body?.agent_name as string | undefined)?.trim();
+  const category = (body?.category as string | undefined)?.toLowerCase();
+  const title = (body?.title as string | undefined)?.trim();
+  const content = (body?.content as string | undefined)?.trim();
+  const contentType = (body?.content_type as string | undefined)?.toLowerCase();
+  const contentUrl = (body?.content_url as string | null | undefined) ?? null;
 
   if (!seasonId) return err("MISSING_SEASON_ID", 400, "MISSING_SEASON_ID");
-  if (!displayName) return err("MISSING_DISPLAY_NAME", 400, "MISSING_DISPLAY_NAME");
-  if (!pitch) return err("MISSING_PITCH", 400, "MISSING_PITCH");
-  if (!sampleUrl) return err("MISSING_SAMPLE_URL", 400, "MISSING_SAMPLE_URL");
+  if (!agentName) return err("MISSING_AGENT_NAME", 400, "MISSING_AGENT_NAME");
+  if (!category) return err("MISSING_CATEGORY", 400, "MISSING_CATEGORY");
+  if (!title) return err("MISSING_TITLE", 400, "MISSING_TITLE");
+  if (!content) return err("MISSING_CONTENT", 400, "MISSING_CONTENT");
+  if (!contentType) return err("MISSING_CONTENT_TYPE", 400, "MISSING_CONTENT_TYPE");
 
-  // Validate window
+  const allowedCategories = [
+    "comedy",
+    "poetry",
+    "code",
+    "art",
+    "music",
+    "video",
+    "animation",
+    "other",
+  ];
+  const allowedContentTypes = ["text", "image", "video", "code", "audio"];
+
+  if (!allowedCategories.includes(category))
+    return err("INVALID_CATEGORY", 400, "INVALID_CATEGORY");
+  if (!allowedContentTypes.includes(contentType))
+    return err("INVALID_CONTENT_TYPE", 400, "INVALID_CONTENT_TYPE");
+
   const { data: season, error: seasonErr } = await supabaseAdmin
     .from("seasons")
-    .select("auditions_start, auditions_end")
+    .select("id")
     .eq("id", seasonId)
     .maybeSingle();
 
   if (seasonErr) return err(seasonErr.message, 500, "SERVER_ERROR");
   if (!season) return err("SEASON_NOT_FOUND", 404, "SEASON_NOT_FOUND");
-
-  const now = Date.now();
-  const start = new Date(season.auditions_start).getTime();
-  const end = new Date(season.auditions_end).getTime();
-  if (!(now >= start && now <= end)) return err("AUDITIONS_CLOSED", 400, "AUDITIONS_CLOSED");
 
   // Upsert agent by wallet
   const wallet = norm(agentAddress);
@@ -73,7 +84,7 @@ export async function POST(req: Request) {
       .from("agents")
       .insert({
         wallet_address: wallet,
-        name: displayName,
+        name: agentName,
         description: null,
         website: null,
         api_key_hash: "mvp_wallet_only",
@@ -85,6 +96,8 @@ export async function POST(req: Request) {
     agentId = created.id;
   }
 
+  const nowIso = new Date().toISOString();
+
   // Create audition
   const { data: audition, error: auditionErr } = await supabaseAdmin
     .from("auditions")
@@ -92,16 +105,20 @@ export async function POST(req: Request) {
       {
         season_id: seasonId,
         agent_id: agentId,
-        display_name: displayName,
-        talent,
-        pitch,
-        sample_url: sampleUrl,
+        agent_name: agentName,
+        wallet_address: wallet,
+        category,
+        title,
+        content,
+        content_type: contentType,
+        content_url: contentUrl,
         status: "pending",
+        updated_at: nowIso,
       },
       { onConflict: "season_id,agent_id" }
     )
     .select(
-      "id, season_id, agent_id, display_name, talent, pitch, sample_url, status, reviewed_by_wallet, reviewed_at, created_at"
+      "id, season_id, agent_id, agent_name, wallet_address, category, title, content, content_type, content_url, status, reviewed_by, reviewed_at, review_notes, rejection_reason, submitted_at, updated_at"
     )
     .single();
 

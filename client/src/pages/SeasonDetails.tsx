@@ -67,8 +67,8 @@ function SeasonDetails() {
 					<div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 px-4 py-8 justify-between  w-full">
 						<div className="flex-1 min-w-0">
 							<SeasonOverivewTab markdownPath={currentSeason.doc} />
-							<SeasonJudgesTab />
-							<SeasonAuditionsTab />
+							<SeasonJudgesTab seasonId={currentSeason.id} />
+							<SeasonAuditionsTab seasonId={currentSeason.id} />
 							<SeasonPerformanceTab />
 						</div>
 

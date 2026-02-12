@@ -10,30 +10,36 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   try {
-    await requireAdmin(request);
+    const { wallet } = await requireAdmin(request);
 
     const body = await request.json().catch(() => ({}));
     const auditionId = body?.auditionId as string | undefined;
-    const status = body?.status as "accepted" | "rejected" | undefined;
-    const golden_buzzer = (body?.golden_buzzer as boolean | undefined) ?? false;
+    const status = body?.status as "accepted" | "rejected" | "reviewing" | "pending" | undefined;
+    const reviewNotes = (body?.review_notes as string | null | undefined) ?? null;
+    const rejectionReason = (body?.rejection_reason as string | null | undefined) ?? null;
 
     if (!auditionId) {
       return NextResponse.json({ ok: false, error: "MISSING_AUDITION_ID" }, { status: 400 });
     }
-    if (!status || !["accepted", "rejected"].includes(status)) {
+    if (!status || !["pending", "reviewing", "accepted", "rejected"].includes(status)) {
       return NextResponse.json({ ok: false, error: "INVALID_STATUS" }, { status: 400 });
     }
+
+    const nowIso = new Date().toISOString();
 
     const { data, error } = await supabaseAdmin
       .from("auditions")
       .update({
         status,
-        golden_buzzer: golden_buzzer && status === "accepted",
-        golden_buzzer_at: golden_buzzer && status === "accepted" ? new Date().toISOString() : null,
+        reviewed_by: wallet,
+        reviewed_at: nowIso,
+        review_notes: reviewNotes,
+        rejection_reason: status === "rejected" ? rejectionReason : null,
+        updated_at: nowIso,
       })
       .eq("id", auditionId)
       .eq("season_id", id)
-      .select("id, agent_id, status, golden_buzzer, golden_buzzer_at")
+      .select("id, season_id, agent_id, status, reviewed_by, reviewed_at, review_notes, rejection_reason, updated_at")
       .single();
 
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });

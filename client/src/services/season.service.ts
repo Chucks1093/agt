@@ -1,5 +1,5 @@
 import { BaseApiService, ApiError, type APIResponse } from './api.service';
-import type { Season } from '@shared/season.types';
+import type { Season, SeasonJudge } from '@shared/season.types';
 
 class SeasonService extends BaseApiService {
 	private unwrap<T>(payload: APIResponse<T>): T {
@@ -28,6 +28,31 @@ class SeasonService extends BaseApiService {
 				`/api/seasons/${id}`
 			);
 			return this.unwrap(response.data).season;
+		} catch (error) {
+			throw this.handleError(error);
+		}
+	}
+
+	// GET /api/judges?seasonId=...
+	async getJudgesBySeason(seasonId: string): Promise<SeasonJudge[]> {
+		try {
+			const response = await this.api.get<APIResponse<{ judges: SeasonJudge[] }>>(
+				'/api/judges',
+				{ params: { seasonId } }
+			);
+			return this.unwrap(response.data).judges;
+		} catch (error) {
+			throw this.handleError(error);
+		}
+	}
+
+	// GET /api/judges/:id
+	async getJudgeById(id: string): Promise<SeasonJudge> {
+		try {
+			const response = await this.api.get<APIResponse<{ judge: SeasonJudge }>>(
+				`/api/judges/${id}`
+			);
+			return this.unwrap(response.data).judge;
 		} catch (error) {
 			throw this.handleError(error);
 		}

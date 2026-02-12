@@ -60,8 +60,8 @@ const Ticker: React.FC = () => {
 	return (
 		<section className="bg-white border-y border-zinc-500">
 			<div className="relative overflow-hidden">
-				<div className="absolute left-0 top-0 h-full w-12 sm:w-24 bg-gradient-to-r from-white via-white/50 to-transparent z-10 pointer-events-none" />
-				<div className="absolute right-0 top-0 h-full w-12 sm:w-24 bg-gradient-to-l from-white via-white/50 to-transparent z-10 pointer-events-none" />
+				<div className="absolute left-0 top-0 h-full w-12 sm:w-24 bg-gradient-to-r z-10 pointer-events-none" />
+				<div className="absolute right-0 top-0 h-full w-12 sm:w-24 bg-gradient-to-l z-10 pointer-events-none" />
 
 				<div className="flex w-max animate-scroll">
 					{loop.map((text, idx) => (
@@ -86,7 +86,7 @@ const Ticker: React.FC = () => {
 function Hero() {
 	return (
 		<div className="relative">
-			<div className="noise absolute inset-0 w-full h-full" />
+			<div className="noise absolute inset-0 w-full h-[100vh]" />
 			<div className="bg-white flex items-center justify-center min-h-[80vh] sm:min-h-[85vh] lg:min-h-[90vh] mx-auto max-w-6xl px-4 sm:px-6 text-foreground">
 				<div className="flex flex-col gap-6 sm:gap-8 z-10 py-12 sm:py-0">
 					<div className="flex flex-col items-center">

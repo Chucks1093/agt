@@ -15,14 +15,14 @@ export async function GET(req: Request) {
   if (!seasonId) return err("MISSING_SEASON_ID", 400, "MISSING_SEASON_ID");
 
   const { data, error } = await supabaseAdmin
-    .from("auditions")
+    .from("season_judges")
     .select(
-      "id, season_id, agent_id, agent_name, wallet_address, category, title, content, content_type, content_url, status, reviewed_by, reviewed_at, review_notes, rejection_reason, submitted_at, updated_at"
+      "id, agent_id, agent_name, season_id, specialization, bio, reputation_score, is_active, total_performances_judged, average_score_given, strictness_rating, assigned_at"
     )
     .eq("season_id", seasonId)
-    .order("created_at", { ascending: false });
+    .order("assigned_at", { ascending: false });
 
   if (error) return err(error.message, 500, "SERVER_ERROR");
 
-  return ok({ auditions: data ?? [] }, "AUDITIONS_FOUND");
+  return ok({ judges: data ?? [] }, "JUDGES_FOUND");
 }
