@@ -103,6 +103,7 @@ export function generateAuditions(
 
 			submitted_at: submitted,
 			updated_at: submitted,
+			created_at: submitted,
 		};
 	});
 }
